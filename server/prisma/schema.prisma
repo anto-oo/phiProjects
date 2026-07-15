@@ -1,13 +1,46 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id        String   @id @default(cuid())
+  name      String
+  nodes     Node[]
+  createdAt DateTime @default(now())
+}
+
+model Node {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  type        String
+  status      String   @default("backlog")
+  priority    String   @default("medium")
+  startDate   DateTime?
+  endDate     DateTime?
+  parentId    String?
+  parent      Node?    @relation("NodeTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children    Node[]   @relation("NodeTree")
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  order       Int      @default(0)
+
+  outgoingDependencies NodeDependency[] @relation("DependencyFrom")
+  incomingDependencies NodeDependency[] @relation("DependencyTo")
+}
+
+model NodeDependency {
+  id            String @id @default(cuid())
+  blockingNodeId String
+  blockedNodeId  String
+
+  blockingNode Node @relation("DependencyFrom", fields: [blockingNodeId], references: [id], onDelete: Cascade)
+  blockedNode  Node @relation("DependencyTo", fields: [blockedNodeId], references: [id], onDelete: Cascade)
+
+  @@unique([blockingNodeId, blockedNodeId])
 }
