@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { priorityOptions, statusOptions, usePlannerStore } from '../../store/plannerStore'
 
 export function NodeEditor({ node, onClose }) {
@@ -6,11 +6,7 @@ export function NodeEditor({ node, onClose }) {
   const createNode = usePlannerStore((state) => state.createNode)
   const updateNode = usePlannerStore((state) => state.updateNode)
 
-  const allNodes = project?.nodes ?? []
-  const dependencyCandidates = useMemo(
-    () => allNodes.filter((candidate) => candidate.id !== node?.id),
-    [allNodes, node?.id],
-  )
+  const dependencyCandidates = (project?.nodes ?? []).filter((candidate) => candidate.id !== node?.id)
 
   const [form, setForm] = useState({
     title: node?.title ?? '',
