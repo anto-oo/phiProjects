@@ -11,6 +11,7 @@ Web app di project planning con React + Node/Express + Prisma/SQLite.
 ```
 project-planner/
 ├── client/
+├── mcp-server/
 ├── server/
 ├── docker-compose.yml
 └── README.md
@@ -42,6 +43,15 @@ Client: `http://localhost:5173`
 
 Il client usa proxy Vite verso il backend per `/api`.
 
+### 3) MCP Server (Claude Connector)
+```bash
+cd /home/runner/work/phiProjects/phiProjects/mcp-server
+npm install
+npx prisma generate --schema=../server/prisma/schema.prisma
+PORT=3002 DATABASE_URL=file:../data/planner.db npm run start
+```
+Endpoint MCP Streamable HTTP: `http://localhost:3002/mcp`
+
 ## API principali
 - `GET/POST /api/projects`
 - `GET/PUT/DELETE /api/projects/:id`
@@ -72,9 +82,14 @@ docker compose up -d --build
 - Porta host app: `8420`
 - Client (Nginx): `8420 -> 80`
 - Server (Express): interno su `3001`
+- MCP Server (Express + MCP SDK): interno su `3002`
 - DB SQLite persistente: `./data/planner.db`
 
-Il reverse proxy Nginx nel container client inoltra `/api` verso `server:3001`.
+Il reverse proxy Nginx nel container client inoltra:
+- `/api` verso `server:3001`
+- `/mcp` verso `mcp-server:3002/mcp`
+
+Per il collegamento remoto con Claude, usa lo stesso tunnel già configurato per l’app e punta il connector a un URL dedicato (es. `https://<tuo-dominio>/mcp` oppure sottodominio dedicato `https://mcp.<tuo-dominio>`).
 
 ## Variabili ambiente
 ### server
