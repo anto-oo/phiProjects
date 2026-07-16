@@ -17,6 +17,12 @@ app.use('/api/projects', projectsRoutes)
 app.use('/api/nodes', nodesRoutes)
 
 app.use((err, req, res, next) => {
+  if (err.status) {
+    return res.status(err.status).json({
+      error: err.message,
+      code: err.code ?? 'REQUEST_ERROR',
+    })
+  }
   console.error(err)
   res.status(500).json({ error: 'Internal server error' })
 })
