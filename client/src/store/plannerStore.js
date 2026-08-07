@@ -92,7 +92,30 @@ export const usePlannerStore = create((set, get) => ({
     set((state) => ({
       projects: state.projects.map((project) => ({
         ...project,
-        nodes: project.nodes.filter((node) => node.id !== id && node.parentId !== id),
+        nodes: (() => {
+          const childrenByParent = project.nodes.reduce((acc, node) => {
+            const key = node.parentId ?? '__root__'
+            if (!acc[key]) acc[key] = []
+            acc[key].push(node.id)
+            return acc
+          }, {})
+
+          const removedIds = new Set([id])
+          const queue = [id]
+
+          while (queue.length > 0) {
+            const current = queue.shift()
+            const children = childrenByParent[current] ?? []
+            children.forEach((childId) => {
+              if (!removedIds.has(childId)) {
+                removedIds.add(childId)
+                queue.push(childId)
+              }
+            })
+          }
+
+          return project.nodes.filter((node) => !removedIds.has(node.id))
+        })(),
       })),
     }))
   },

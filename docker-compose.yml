@@ -9,10 +9,24 @@ services:
       - ./data:/app/data
     restart: unless-stopped
 
+  mcp-server:
+    build:
+      context: .
+      dockerfile: mcp-server/Dockerfile
+    environment:
+      - DATABASE_URL=file:/app/data/planner.db
+      - PORT=3002
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      - server
+    restart: unless-stopped
+
   client:
     build: ./client
     ports:
       - "8420:80"
     depends_on:
       - server
+      - mcp-server
     restart: unless-stopped
